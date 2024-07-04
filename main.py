@@ -12,7 +12,7 @@ class MainProgram:
         # Screen setup
         self.__screen = turtle.Screen()
         self.__screen.title('DSAA CA2')
-        self.__screen.setup(width=700, height=600)
+        self.__screen.setup(width=800, height=600)
         self.__screen.setworldcoordinates(0, 0, self.__cols, self.__rows)
         self.__screen.tracer(0, 0)
 
@@ -52,7 +52,7 @@ class MainProgram:
         self.turtle.goto(self.__cols / 2, self.__rows + 1)
         self.turtle.write("COFFEE~GO~DRONE: Done by Joon Yi, Sheng Wei, Clemens DAAA/2A/02", align="center", font=("Arial", 16, "bold"))
         self.turtle.goto(self.__cols / 2, self.__rows)
-        self.turtle.write("DRONE STATUS= Manual Mode: Use arrow keys to navigate (press 'f' to calculate shortest path)", align="center", font=("Arial", 12, "normal"))
+        self.turtle.write("DRONE STATUS= Manual Mode: Use arrow keys to navigate (press 'f' to calculate shortest path)\n", align="center", font=("Arial", 12, "normal"))
         self.turtle.goto(0, 0)  # Reset position
 
     def draw_cell(self, x, y, color):
