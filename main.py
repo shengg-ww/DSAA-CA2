@@ -2,33 +2,25 @@ import turtle
 
 class MainProgram:
     def __init__(self):
-        self.__city_map = [
-            "XXXXXXXXXXXX",
-            "X...X..X..eX",
-            "X.X....X.XXX",
-            "X..X.X.X.X.X",
-            "XX.XXX.X...X",
-            "X........X.X",
-            "XsXX...X...X",
-            "XXXXXXXXXXXX"
-        ]
-        print('Hello World')
+        with open('city001.txt', 'r') as file:
+            self.__city_map = [line.strip() for line in file.readlines()]
+
         # Map dimensions
         self.__rows = len(self.__city_map)
         self.__cols = len(self.__city_map[0])
 
         # Screen setup
-        
-        self.wn = turtle.Screen()
-        self.wn.title("Turtle Keys")
-        self.wn.setup(width=600, height=400)
-        self.wn.setworldcoordinates(0, 0, self.__cols, self.__rows)
-        self.wn.tracer(0, 0) 
+        self.__screen = turtle.Screen()
+        self.__screen.title('DSAA CA2')
+        self.__screen.setup(width=700, height=600)
+        self.__screen.setworldcoordinates(0, 0, self.__cols, self.__rows)
+        self.__screen.tracer(0, 0)
 
         self.turtle = turtle.Turtle()
         self.turtle.speed(0)
         self.turtle.hideturtle()
 
+        self.write_text()
         self.draw_map()
 
         # Create the player turtle
@@ -46,11 +38,22 @@ class MainProgram:
                     break
 
         # Key bindings
-        self.wn.listen()
-
+        self.__screen.listen()
+        self.__screen.onkey(self.up, 'Up')
+        self.__screen.onkey(self.down, 'Down')
+        self.__screen.onkey(self.left, 'Left')
+        self.__screen.onkey(self.right, 'Right')
 
         # Update the screen
-        self.wn.update()
+        self.__screen.update()
+
+    def write_text(self):
+        self.turtle.penup()
+        self.turtle.goto(self.__cols / 2, self.__rows + 1)
+        self.turtle.write("COFFEE~GO~DRONE: Done by Joon Yi, Sheng Wei, Clemens DAAA/2A/02", align="center", font=("Arial", 16, "bold"))
+        self.turtle.goto(self.__cols / 2, self.__rows)
+        self.turtle.write("DRONE STATUS= Manual Mode: Use arrow keys to navigate (press 'f' to calculate shortest path)", align="center", font=("Arial", 12, "normal"))
+        self.turtle.goto(0, 0)  # Reset position
 
     def draw_cell(self, x, y, color):
         self.turtle.penup()
@@ -99,28 +102,38 @@ class MainProgram:
             self.turtle.goto(self.__cols, y)
 
     def up(self):
-        x, y = self.player.position()
-        if self.__city_map[self.__rows - int(y) - 2][int(x)] not in 'X':
-            self.__player.setheading(90)
-            self.__player.forward(1)
+        x, y = self.__player.position()
+        new_x, new_y = x, y + 1
+        if self.is_valid_move(new_x, new_y):
+            self.__player.goto(new_x, new_y)
+        self.__screen.update()
 
     def down(self):
-        x, y = self.player.position()
-        if self.__city_map[self.__rows - int(y)][int(x)] not in 'X':
-            self.__player.setheading(270)
-            self.__player.forward(1)
+        x, y = self.__player.position()
+        new_x, new_y = x, y - 1
+        if self.is_valid_move(new_x, new_y):
+            self.__player.goto(new_x, new_y)
+        self.__screen.update()
 
     def left(self):
         x, y = self.__player.position()
-        if self.__city_map[self.__rows - int(y) - 1][int(x) - 1] not in 'X':
-            self.__player.setheading(180)
-            self.__player.forward(1)
+        new_x, new_y = x - 1, y
+        if self.is_valid_move(new_x, new_y):
+            self.__player.goto(new_x, new_y)
+        self.__screen.update()
 
     def right(self):
         x, y = self.__player.position()
-        if self.__city_map[self.__rows - int(y) - 1][int(x) + 1] not in 'X':
-            self.__player.setheading(0)
-            self.__player.forward(1)
+        new_x, new_y = x + 1, y
+        if self.is_valid_move(new_x, new_y):
+            self.__player.goto(new_x, new_y)
+        self.__screen.update()
+
+    def is_valid_move(self, x, y):
+        map_x, map_y = int(x), int(self.__rows - y - 1)
+        if 0 <= map_x < self.__cols and 0 <= map_y < self.__rows:
+            return self.__city_map[map_y][map_x] != 'X'
+        return False
 
 if __name__ == "__main__":
     MainProgram()
