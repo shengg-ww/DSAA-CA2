@@ -130,7 +130,7 @@ class MainProgram:
         self.__screen.update()
 
     def is_valid_move(self, x, y):
-        map_x, map_y = int(x), int(self.__rows - y - 1)
+        map_x, map_y = int(x), int(self.__rows - y)
         if 0 <= map_x < self.__cols and 0 <= map_y < self.__rows:
             return self.__city_map[map_y][map_x] != 'X'
         return False
