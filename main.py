@@ -23,9 +23,13 @@ class MainProgram:
         self.write_text()
         self.draw_map()
 
+        # Create the custom player turtle shape
+        self.shape = ((0, 10), (-10, -10), (0, -5), (10, -10), (0, 10))
+        self.__screen.register_shape("arrow", self.shape)
+
         # Create the player turtle
         self.__player = turtle.Turtle()
-        self.__player.shape('triangle')
+        self.__player.shape('arrow')
         self.__player.color('red')
         self.__player.penup()
         self.__player.speed(0)
@@ -66,6 +70,20 @@ class MainProgram:
             self.turtle.left(90)
         self.turtle.end_fill()
 
+    def draw_circle_with_letter(self, x, y,letter, border_color='black', border_thickness=2):
+        self.turtle.penup()
+        self.turtle.goto(x+0.5, y+0.25)
+        self.turtle.pendown()
+        self.turtle.pensize(border_thickness)
+        self.turtle.pencolor(border_color)
+        self.turtle.circle(0.3)
+        self.turtle.penup()
+        self.turtle.goto(x + 0.5, y +0.3)
+        self.turtle.pendown()
+        self.turtle.color("black")
+        self.turtle.write(letter, align="center", font=("Arial", 24, "bold"))
+        self.turtle.pensize(1)  # Reset pen size
+
     def draw_map(self):
         # Draw the map
         for y in range(self.__rows):
@@ -74,9 +92,11 @@ class MainProgram:
                 if char == 'X':
                     self.draw_cell(x, self.__rows - y - 1, 'grey')
                 elif char == 's':
-                    self.draw_cell(x, self.__rows - y - 1, 'green')
+                    self.draw_cell(x, self.__rows - y - 1, 'lightgreen')
+                    self.draw_circle_with_letter(x, self.__rows - y - 1, 'S', border_color='darkgreen', border_thickness=5)
                 elif char == 'e':
-                    self.draw_cell(x, self.__rows - y - 1, 'blue')
+                    self.draw_cell(x, self.__rows - y - 1, 'turquoise')
+                    self.draw_circle_with_letter(x, self.__rows - y - 1, 'e', border_color='darkblue', border_thickness=5)
                 else:
                     self.draw_cell(x, self.__rows - y - 1, 'white')
                     self.turtle.penup()
@@ -105,6 +125,7 @@ class MainProgram:
         x, y = self.__player.position()
         new_x, new_y = x, y + 1
         if self.is_valid_move(new_x, new_y):
+            self.__player.setheading(90)  # Face up
             self.__player.goto(new_x, new_y)
         self.__screen.update()
 
@@ -112,6 +133,7 @@ class MainProgram:
         x, y = self.__player.position()
         new_x, new_y = x, y - 1
         if self.is_valid_move(new_x, new_y):
+            self.__player.setheading(270)  # Face up
             self.__player.goto(new_x, new_y)
         self.__screen.update()
 
@@ -119,13 +141,15 @@ class MainProgram:
         x, y = self.__player.position()
         new_x, new_y = x - 1, y
         if self.is_valid_move(new_x, new_y):
+            self.__player.setheading(180)  # Face left
             self.__player.goto(new_x, new_y)
         self.__screen.update()
 
     def right(self):
         x, y = self.__player.position()
         new_x, new_y = x + 1, y
-        if self.is_valid_move(new_x, new_y):
+        if self.is_valid_move(new_x, new_y):     
+            self.__player.setheading(0)  # Face left
             self.__player.goto(new_x, new_y)
         self.__screen.update()
 
