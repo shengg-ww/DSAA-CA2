@@ -133,7 +133,7 @@ class MainProgram:
         x, y = self.__player.position()
         new_x, new_y = x, y - 1
         if self.is_valid_move(new_x, new_y):
-            self.__player.setheading(270)  # Face up
+            self.__player.setheading(270)  # Face down
             self.__player.goto(new_x, new_y)
         self.__screen.update()
 
@@ -149,7 +149,7 @@ class MainProgram:
         x, y = self.__player.position()
         new_x, new_y = x + 1, y
         if self.is_valid_move(new_x, new_y):     
-            self.__player.setheading(0)  # Face left
+            self.__player.setheading(0)  # default
             self.__player.goto(new_x, new_y)
         self.__screen.update()
 
