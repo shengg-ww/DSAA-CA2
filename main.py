@@ -124,32 +124,36 @@ class MainProgram:
     def up(self):
         x, y = self.__player.position()
         new_x, new_y = x, y + 1
+        self.__player.setheading(90)  # Face up
+        
         if self.is_valid_move(new_x, new_y):
-            self.__player.setheading(90)  # Face up
+            
             self.__player.goto(new_x, new_y)
         self.__screen.update()
 
     def down(self):
         x, y = self.__player.position()
-        new_x, new_y = x, y - 1
+        new_x, new_y = x, y - 1 
+        self.__player.setheading(270)  # Face down
         if self.is_valid_move(new_x, new_y):
-            self.__player.setheading(270)  # Face down
             self.__player.goto(new_x, new_y)
         self.__screen.update()
 
     def left(self):
         x, y = self.__player.position()
-        new_x, new_y = x - 1, y
+        new_x, new_y = x - 1, y 
+        self.__player.setheading(180)  # Face left
         if self.is_valid_move(new_x, new_y):
-            self.__player.setheading(180)  # Face left
+           
             self.__player.goto(new_x, new_y)
         self.__screen.update()
 
     def right(self):
         x, y = self.__player.position()
         new_x, new_y = x + 1, y
+        self.__player.setheading(0)  # default
         if self.is_valid_move(new_x, new_y):     
-            self.__player.setheading(0)  # default
+           
             self.__player.goto(new_x, new_y)
         self.__screen.update()
 
