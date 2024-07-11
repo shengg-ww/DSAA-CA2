@@ -1,62 +1,72 @@
 import turtle
+from program import ProgramControl
+import turtle
+import networkx as nx
 
-class MainProgram:
+
+class MainProgram(ProgramControl):
     def __init__(self):
+        super().__init__()
         with open('city001.txt', 'r') as file:
-            self.__city_map = [line.strip() for line in file.readlines()]
+            self.city_map = [line.strip() for line in file.readlines()]
 
         # Map dimensions
-        self.__rows = len(self.__city_map)
-        self.__cols = len(self.__city_map[0])
+        self.rows = len(self.city_map)
+        self.cols = len(self.city_map[0])
 
-        # Screen setup
-        self.__screen = turtle.Screen()
-        self.__screen.title('DSAA CA2')
-        self.__screen.setup(width=800, height=600)
-        self.__screen.setworldcoordinates(0, 0, self.__cols, self.__rows)
-        self.__screen.tracer(0, 0)
-
-        self.turtle = turtle.Turtle()
-        self.turtle.speed(0)
-        self.turtle.hideturtle()
+        # # Screen setup
+        self.screen = turtle.Screen()
+        self.screen.title('DSAA CA2')
+        self.screen.setup(width=800, height=600)
+        self.screen.setworldcoordinates(0, 0, self.cols, self.rows)
+        self.screen.tracer(0, 0)
 
         self.write_text()
         self.draw_map()
 
         # Create the custom player turtle shape
         self.shape = ((0, 10), (-10, -10), (0, -5), (10, -10), (0, 10))
-        self.__screen.register_shape("arrow", self.shape)
+        self.screen.register_shape("arrow", self.shape)
 
         # Create the player turtle
-        self.__player = turtle.Turtle()
-        self.__player.shape('arrow')
-        self.__player.color('red')
-        self.__player.penup()
-        self.__player.speed(0)
+        self.player = turtle.Turtle()
+        self.player.shape('arrow')
+        self.player.color('red')
+        self.player.penup()
+        self.player.speed(0)
 
         # Find the starting position 's'
-        for y in range(self.__rows):
-            for x in range(self.__cols):
-                if self.__city_map[y][x] == 's':
-                    self.__player.goto(x + 0.5, self.__rows - y - 0.5)
+        for y in range(self.rows):
+            for x in range(self.cols):
+                if self.city_map[y][x] == 's':
+                    self.player.goto(x + 0.5, self.rows - y - 0.5)
                     break
 
         # Key bindings
-        self.__screen.listen()
-        self.__screen.onkey(self.up, 'Up')
-        self.__screen.onkey(self.down, 'Down')
-        self.__screen.onkey(self.left, 'Left')
-        self.__screen.onkey(self.right, 'Right')
+        self.screen.listen()
+        self.screen.onkey(self.up, 'Up')
+        self.screen.onkey(self.down, 'Down')
+        self.screen.onkey(self.left, 'Left')
+        self.screen.onkey(self.right, 'Right')
+        self.screen.onkey(self.calculate_shortest_path, 'f')
+        self.screen.onkey(self.autopilot_mode, 'g')
+        self.screen.onkey(self.pause_mode, 'p')
+        self.screen.onkey(self.hide_path,'h')
+        self.screen.onkey(self.reset,'r')
+        self.screen.onkey(self.quit_program,'q')
+
 
         # Update the screen
-        self.__screen.update()
+        self.screen.update()
+
+    def get_current_position(self):
+        x, y = self.player.position()
+        return int(x - 0.5), int(self.rows - y - 0.5)
 
     def write_text(self):
         self.turtle.penup()
-        self.turtle.goto(self.__cols / 2, self.__rows + 1)
-        self.turtle.write("COFFEE~GO~DRONE: Done by Joon Yi, Sheng Wei, Clemens DAAA/2A/02", align="center", font=("Arial", 16, "bold"))
-        self.turtle.goto(self.__cols / 2, self.__rows)
-        self.turtle.write("DRONE STATUS= Manual Mode: Use arrow keys to navigate (press 'f' to calculate shortest path)\n", align="center", font=("Arial", 12, "normal"))
+        self.turtle.goto(self.cols / 2, self.rows + 1)
+        self.turtle.write("COFFEE~GO~DRONE: Done by Sheng Wei, Joon Yi, Clemens DAAA/2A/02", align="center", font=("Arial", 16, "bold"))
         self.turtle.goto(0, 0)  # Reset position
 
     def draw_cell(self, x, y, color):
@@ -70,37 +80,24 @@ class MainProgram:
             self.turtle.left(90)
         self.turtle.end_fill()
 
-    def draw_circle_with_letter(self, x, y,letter, border_color='black', border_thickness=2):
-        self.turtle.penup()
-        self.turtle.goto(x+0.5, y+0.25)
-        self.turtle.pendown()
-        self.turtle.pensize(border_thickness)
-        self.turtle.pencolor(border_color)
-        self.turtle.circle(0.3)
-        self.turtle.penup()
-        self.turtle.goto(x + 0.5, y +0.3)
-        self.turtle.pendown()
-        self.turtle.color("black")
-        self.turtle.write(letter, align="center", font=("Arial", 24, "bold"))
-        self.turtle.pensize(1)  # Reset pen size
-
     def draw_map(self):
+        self.update_status_text("DRONE STATUS= Manual Mode: Use arrow keys to navigate (press 'f' to calculate shortest path)")
         # Draw the map
-        for y in range(self.__rows):
-            for x in range(self.__cols):
-                char = self.__city_map[y][x]
+        for y in range(self.rows):
+            for x in range(self.cols):
+                char = self.city_map[y][x]
                 if char == 'X':
-                    self.draw_cell(x, self.__rows - y - 1, 'grey')
+                    self.draw_cell(x, self.rows - y - 1, 'grey')
                 elif char == 's':
-                    self.draw_cell(x, self.__rows - y - 1, 'lightgreen')
-                    self.draw_circle_with_letter(x, self.__rows - y - 1, 'S', border_color='darkgreen', border_thickness=5)
+                    self.draw_cell(x, self.rows - y - 1, 'lightgreen')
+                    self.draw_circle(x, self.rows - y - 1, 'S', color='lightgreen', border_color='darkgreen', border_thickness=5)
                 elif char == 'e':
-                    self.draw_cell(x, self.__rows - y - 1, 'turquoise')
-                    self.draw_circle_with_letter(x, self.__rows - y - 1, 'e', border_color='darkblue', border_thickness=5)
+                    self.draw_cell(x, self.rows - y - 1, 'turquoise')
+                    self.draw_circle(x, self.rows - y - 1, 'e', color='turquoise', border_color='darkblue', border_thickness=5)
                 else:
-                    self.draw_cell(x, self.__rows - y - 1, 'white')
+                    self.draw_cell(x, self.rows - y - 1, 'white')
                     self.turtle.penup()
-                    self.turtle.goto(x + 0.5, self.__rows - y - 1 + 0.5)
+                    self.turtle.goto(x + 0.5, self.rows - y - 1 + 0.5)
                     self.turtle.pendown()
 
         # Draw grid lines
@@ -109,60 +106,57 @@ class MainProgram:
         # Set the pensize for thicker grid lines
         self.turtle.pensize(3)
 
-        for x in range(self.__cols + 1):
+        for x in range(self.cols + 1):
             self.turtle.penup()
             self.turtle.goto(x, 0)
             self.turtle.pendown()
-            self.turtle.goto(x, self.__rows)
+            self.turtle.goto(x, self.rows)
 
-        for y in range(self.__rows + 1):
+        for y in range(self.rows + 1):
             self.turtle.penup()
             self.turtle.goto(0, y)
             self.turtle.pendown()
-            self.turtle.goto(self.__cols, y)
+            self.turtle.goto(self.cols, y)
 
     def up(self):
-        x, y = self.__player.position()
+        x, y = self.player.position()
         new_x, new_y = x, y + 1
-        self.__player.setheading(90)  # Face up
+        self.player.setheading(90)  # Face up
         
         if self.is_valid_move(new_x, new_y):
-            
-            self.__player.goto(new_x, new_y)
-        self.__screen.update()
+            self.player.goto(new_x, new_y)
+        self.screen.update()
 
     def down(self):
-        x, y = self.__player.position()
+        x, y = self.player.position()
         new_x, new_y = x, y - 1 
-        self.__player.setheading(270)  # Face down
+        self.player.setheading(270)  # Face down
         if self.is_valid_move(new_x, new_y):
-            self.__player.goto(new_x, new_y)
-        self.__screen.update()
+            self.player.goto(new_x, new_y)
+        self.screen.update()
 
     def left(self):
-        x, y = self.__player.position()
+        x, y = self.player.position()
         new_x, new_y = x - 1, y 
-        self.__player.setheading(180)  # Face left
+        self.player.setheading(180)  # Face left
         if self.is_valid_move(new_x, new_y):
-           
-            self.__player.goto(new_x, new_y)
-        self.__screen.update()
+            self.player.goto(new_x, new_y)
+        self.screen.update()
 
     def right(self):
-        x, y = self.__player.position()
+        x, y = self.player.position()
         new_x, new_y = x + 1, y
-        self.__player.setheading(0)  # default
+        self.player.setheading(0)  # Face right
         if self.is_valid_move(new_x, new_y):     
-           
-            self.__player.goto(new_x, new_y)
-        self.__screen.update()
+            self.player.goto(new_x, new_y)
+        self.screen.update()
 
     def is_valid_move(self, x, y):
-        map_x, map_y = int(x), int(self.__rows - y)
-        if 0 <= map_x < self.__cols and 0 <= map_y < self.__rows:
-            return self.__city_map[map_y][map_x] != 'X'
+        map_x, map_y = int(x), int(self.rows - y)
+        if 0 <= map_x < self.cols and 0 <= map_y < self.rows:
+            return self.city_map[map_y][map_x] != 'X'
         return False
 
 if __name__ == "__main__":
-    MainProgram()
-    turtle.mainloop()
+    program = MainProgram()
+    turtle.done()
