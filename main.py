@@ -6,6 +6,7 @@ import networkx as nx
 
 class MainProgram(ProgramControl):
     def __init__(self):
+     
         super().__init__()
         with open('city001.txt', 'r') as file:
             self.city_map = [line.strip() for line in file.readlines()]
@@ -16,6 +17,7 @@ class MainProgram(ProgramControl):
 
         # # Screen setup
         self.screen = turtle.Screen()
+        self.screen.clear()
         self.screen.title('DSAA CA2')
         self.screen.setup(width=800, height=600)
         self.screen.setworldcoordinates(0, 0, self.cols, self.rows)
@@ -61,7 +63,7 @@ class MainProgram(ProgramControl):
 
     def get_current_position(self):
         x, y = self.player.position()
-        return int(x - 0.5), int(self.rows - y - 0.5)
+        return int(x), int(self.rows - y)
 
     def write_text(self):
         self.turtle.penup()

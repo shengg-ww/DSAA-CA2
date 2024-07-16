@@ -37,15 +37,23 @@ class ProgramControl:
             self.turtle.write(letter, align="center", font=("Arial", 24, "bold"))
         self.turtle.pensize(1)  # Reset pen size
 
-    def calculate_shortest_path(self):
+    def manhattan_heuristic(self,a, b):
+        (x1, y1) = a
+        (x2, y2) = b
+        return abs(x1 - x2) + abs(y1 - y2)
 
+    def calculate_shortest_path(self):
         start = self.get_current_position()
         end = None
 
+        # Find the end position
         for y in range(self.rows):
             for x in range(self.cols):
                 if self.city_map[y][x] == 'e':
                     end = (x, y)
+                    break
+            if end:
+                break
 
         if start and end:
             G = nx.grid_2d_graph(self.rows, self.cols)
@@ -56,9 +64,12 @@ class ProgramControl:
                     if self.city_map[y][x] == 'X':
                         G.remove_node((y, x))
 
-            # Use Dijkstra's algorithm to find the shortest path
+            # Use A* algorithm to find the shortest path
             try:
-                path = nx.shortest_path(G, source=(start[1], start[0]), target=(end[1], end[0]), weight=None, method='dijkstra')
+
+                # expressed in x-y coordinates in source and target
+                path = nx.astar_path(G, source=(start[1], start[0]), target=(end[1], end[0]),heuristic=lambda a, b: self.manhattan_heuristic(a, b))
+
                 # Convert the path back to the format (x, y)
                 self.path = [(x, y) for y, x in path]
                 
@@ -67,9 +78,11 @@ class ProgramControl:
                 
                 self.update_status_text("DRONE STATUS= Ready to take off in autopilot mode (press 'g')")
                 return path
-            except nx.NetworkXNoPath:
-                self.update_status_text("DRONE STATUS= No path found")
-                return None
+            except:
+                if start[1]==end[1] and start[0]==end[0]:
+                    self.path=[]
+                    self.update_status_text("DRONE STATUS= No path found")
+                    return None
             
     def autopilot_mode(self):
         if not self.path:
@@ -113,7 +126,6 @@ class ProgramControl:
             self.path = []  # Clear the stored path
 
     def quit_program(self):
-        pass
-
+        turtle.bye()
     def reset(self):
         pass
