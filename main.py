@@ -1,10 +1,10 @@
 import turtle
 from program import ProgramControl
-import turtle
-import networkx as nx
+from drone import BaseDrone
+from SWindiv import SpecialControl
 
 
-class MainProgram(ProgramControl):
+class MainProgram(ProgramControl, SpecialControl):
     def __init__(self):
      
         super().__init__()
@@ -25,26 +25,43 @@ class MainProgram(ProgramControl):
 
         self.write_text()
         self.draw_map()
+    
 
         # Create the custom player turtle shape
         self.shape = ((0, 10), (-10, -10), (0, -5), (10, -10), (0, 10))
         self.screen.register_shape("arrow", self.shape)
 
-        # Create the player turtle
-        self.player = turtle.Turtle()
-        self.player.shape('arrow')
-        self.player.color('red')
-        self.player.penup()
-        self.player.speed(0)
+        # Initialize drones list
+        self.drones = []
 
         # Find the starting position 's'
+        
+        self.start_pos = None
         for y in range(self.rows):
             for x in range(self.cols):
                 if self.city_map[y][x] == 's':
-                    self.player.goto(x + 0.5, self.rows - y - 0.5)
+                    self.start_pos = (x + 0.5, self.rows - y - 0.5)
                     break
+            if self.start_pos:
+                break
 
-        # Key bindings
+        # Find the target position 'e'
+        self.target_pos = None
+        for y in range(self.rows):
+            for x in range(self.cols):
+                if self.city_map[y][x] == 'e':
+                    self.target_pos = (x + 0.5,  y )
+                    break
+            if self.target_pos:
+                break
+
+         # Initialize player drone
+        self.player = BaseDrone("Original Drone", self.start_pos, self.target_pos, "red", self.screen)
+        self.drones.append(self.player)
+
+        self.current_drone_index = 0  # Start with player drone
+
+        # Group Key bindings
         self.screen.listen()
         self.screen.onkey(self.up, 'Up')
         self.screen.onkey(self.down, 'Down')
@@ -55,15 +72,43 @@ class MainProgram(ProgramControl):
         self.screen.onkey(self.pause_mode, 'p')
         self.screen.onkey(self.hide_path,'h')
         self.screen.onkey(self.reset,'r')
+        self.screen.onkey(self.continueProgram,'c')
         self.screen.onkey(self.quit_program,'q')
 
+        # addtional feature 1 (SW)
+        self.screen.onkey(self.add_drone,'+')
+        self.screen.onkey(self.switch_drone,'t')
+        self.screen.onkey(self.delete_drone,'BackSpace')
+        self.screen.onscreenclick(self.choose_end, 1)  # Left mouse click
+
+
+        # additional feature 2 (SW)
+        self.screen.onkey(self.weather_randomizer,'w')
 
         # Update the screen
+        self.draw_map()
+        
         self.screen.update()
+    
+    def up(self):
+        self.drones[self.current_drone_index].move_up(self.city_map)
+
+    def down(self):
+        self.drones[self.current_drone_index].move_down(self.city_map)
+
+    def left(self):
+        self.drones[self.current_drone_index].move_left(self.city_map)
+
+    def right(self):
+        self.drones[self.current_drone_index].move_right(self.city_map)
 
     def get_current_position(self):
-        x, y = self.player.position()
-        return int(x), int(self.rows - y)
+        x, y = self.drones[self.current_drone_index].turtle.position()
+        return int(x - 0.5), int(self.rows - y - 0.5)
+    
+    def draw_players(self):
+        for drone in self.drones:
+            drone.turtle.goto()
 
     def write_text(self):
         self.turtle.penup()
@@ -90,12 +135,13 @@ class MainProgram(ProgramControl):
                 char = self.city_map[y][x]
                 if char == 'X':
                     self.draw_cell(x, self.rows - y - 1, 'grey')
-                elif char == 's':
-                    self.draw_cell(x, self.rows - y - 1, 'lightgreen')
-                    self.draw_circle(x, self.rows - y - 1, 'S', color='lightgreen', border_color='darkgreen', border_thickness=5)
                 elif char == 'e':
                     self.draw_cell(x, self.rows - y - 1, 'turquoise')
-                    self.draw_circle(x, self.rows - y - 1, 'e', color='turquoise', border_color='darkblue', border_thickness=5)
+                    self.draw_circle(x, self.rows - y - 1, 'e', color='turquoise', text_color='black',border_color='blue', border_thickness=5)
+                elif char == 's':
+                    self.draw_cell(x, self.rows - y - 1, 'lightgreen')
+                    self.draw_circle(x, self.rows - y - 1, 'S', color='lightgreen', text_color='black', border_color='darkgreen', border_thickness=5)
+                
                 else:
                     self.draw_cell(x, self.rows - y - 1, 'white')
                     self.turtle.penup()
@@ -120,44 +166,7 @@ class MainProgram(ProgramControl):
             self.turtle.pendown()
             self.turtle.goto(self.cols, y)
 
-    def up(self):
-        x, y = self.player.position()
-        new_x, new_y = x, y + 1
-        self.player.setheading(90)  # Face up
-        
-        if self.is_valid_move(new_x, new_y):
-            self.player.goto(new_x, new_y)
-        self.screen.update()
 
-    def down(self):
-        x, y = self.player.position()
-        new_x, new_y = x, y - 1 
-        self.player.setheading(270)  # Face down
-        if self.is_valid_move(new_x, new_y):
-            self.player.goto(new_x, new_y)
-        self.screen.update()
-
-    def left(self):
-        x, y = self.player.position()
-        new_x, new_y = x - 1, y 
-        self.player.setheading(180)  # Face left
-        if self.is_valid_move(new_x, new_y):
-            self.player.goto(new_x, new_y)
-        self.screen.update()
-
-    def right(self):
-        x, y = self.player.position()
-        new_x, new_y = x + 1, y
-        self.player.setheading(0)  # Face right
-        if self.is_valid_move(new_x, new_y):     
-            self.player.goto(new_x, new_y)
-        self.screen.update()
-
-    def is_valid_move(self, x, y):
-        map_x, map_y = int(x), int(self.rows - y)
-        if 0 <= map_x < self.cols and 0 <= map_y < self.rows:
-            return self.city_map[map_y][map_x] != 'X'
-        return False
 
 if __name__ == "__main__":
     program = MainProgram()
