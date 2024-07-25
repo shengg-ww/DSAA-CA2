@@ -153,7 +153,7 @@ class ProgramControl(SpecialControl):
 
         self.update_status_text(f"Automatic Pilot: {current_drone.name} reached destination {end_pos} in {steps} steps. Press 'c' to continue.")
     def pause_mode(self):
-        # help to pause
+        # help to pause # clemens section to do 
         pass
 
     def hide_path(self):
