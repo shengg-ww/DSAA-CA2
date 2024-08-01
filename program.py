@@ -158,7 +158,7 @@ class ProgramControl(SpecialControl):
     
     # HELP HELP HELP
     def pause_mode(self):
-        # help to pause
+        # help to pause # clemens section to do 
         pass
 
     # HELP HELP HELP
