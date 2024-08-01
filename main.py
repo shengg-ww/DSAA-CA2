@@ -35,7 +35,6 @@ class MainProgram(ProgramControl, SpecialControl):
         self.drones = []
 
         # Find the starting position 's'
-        
         self.start_pos = None
         for y in range(self.rows):
             for x in range(self.cols):
@@ -60,9 +59,16 @@ class MainProgram(ProgramControl, SpecialControl):
         self.drones.append(self.player)
 
         self.current_drone_index = 0  # Start with player drone
+        self.screen.listen()
+
+         # Setup screen control function
+        self.screen_control()
+
+        # set default weather
+        self.weather='sunny'
 
         # Group Key bindings
-        self.screen.listen()
+    def screen_control(self):
         self.screen.onkey(self.up, 'Up')
         self.screen.onkey(self.down, 'Down')
         self.screen.onkey(self.left, 'Left')
@@ -106,9 +112,6 @@ class MainProgram(ProgramControl, SpecialControl):
         x, y = self.drones[self.current_drone_index].turtle.position()
         return int(x - 0.5), int(self.rows - y - 0.5)
     
-    def draw_players(self):
-        for drone in self.drones:
-            drone.turtle.goto()
 
     def write_text(self):
         self.turtle.penup()

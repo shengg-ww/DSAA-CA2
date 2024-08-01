@@ -1,5 +1,6 @@
 from drone import BaseDrone
-
+import random
+import turtle
 
 #1: Implement multi drone coordination with independent end points
 # 2: Random Event Generator (e.g Rain, Flood, Fog )
@@ -65,21 +66,34 @@ class SpecialControl(BaseDrone):
             # Set the new end point
             self.city_map[grid_y] = self.city_map[grid_y][:grid_x] + 'e' + self.city_map[grid_y][grid_x + 1:]
 
- 
-
             # Set the end point for the current drone
             current_drone.target_pos = (grid_x, grid_y)
-
-
+            
             # Redraw the map
             self.draw_map()
             self.screen.update()
 
-        
-                    
- 
-
-
     def weather_randomizer(self):
             # Existing implementation
-            pass
+            weather=['Snow','Rain','Hurricane']
+            self.weather_condition = random.choice(weather)
+            self.apply_weather_effect()
+    
+
+    def apply_weather_effect(self):
+        self.update_status_text(f'{self.weather_condition} has been applied')
+       
+        if self.weather_condition == 'Rainy':
+            self.draw_rain()
+        elif self.weather_condition == 'Hurricane':
+            self.draw_hurricane()
+
+    def draw_hurricane(self):
+        hurricane_turtle = turtle.Turtle()
+        hurricane_turtle.hideturtle()
+        hurricane_turtle.penup()
+        hurricane_turtle.speed(0)
+        hurricane_turtle.color('white')
+    
+    def draw_rain(self):
+        pass

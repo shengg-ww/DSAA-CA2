@@ -1,8 +1,11 @@
 import turtle
 import networkx as nx
 from SWindiv import SpecialControl
+from drone import BaseDrone
+
 
 class ProgramControl(SpecialControl):
+
     def __init__(self):
 
         self.turtle = turtle.Turtle()
@@ -19,7 +22,7 @@ class ProgramControl(SpecialControl):
 
         # List to track yellow circles
         self.yellow_circles = []
-        
+    
 
     def update_status_text(self, text):
         self.status_turtle.clear()
@@ -152,10 +155,13 @@ class ProgramControl(SpecialControl):
         self.screen.update()
 
         self.update_status_text(f"Automatic Pilot: {current_drone.name} reached destination {end_pos} in {steps} steps. Press 'c' to continue.")
+    
+    # HELP HELP HELP
     def pause_mode(self):
         # help to pause
         pass
 
+    # HELP HELP HELP
     def hide_path(self):
         # help to hide it
         self.circle.hideturtle()
@@ -170,8 +176,21 @@ class ProgramControl(SpecialControl):
         self.update_status_text('Manual Mode: Use arrow keys to navigate (press ‘f’ to calculate shortest path)')
          
     def reset(self):
-        # help to reset to starting position, almost correct now
+        self.screen.clear()
+        turtle.tracer(0)
+
+        # Re-draw the map
         self.draw_map()
-        self.update_status_text('Program Resetted. Manual Mode: Use arrow keys to navigate (press ‘f’ to calculate shortest path) ')
-        self.screen.update()
+        self.write_text()
+
+        # Initialize player drone
+        self.player = BaseDrone("Original Drone", self.start_pos, self.target_pos, "red", self.screen)
+        self.drones = [self.player]  
+        self.current_drone_index = 0
+
+        # Re-bind the keys to control the drone
+        self.screen_control()
+     
+
+ 
 
