@@ -22,6 +22,9 @@ class ProgramControl(SpecialControl):
 
         # List to track yellow circles
         self.yellow_circles = []
+
+        # State Variable to track pause state
+        self.is_paused = False 
     
 
     def update_status_text(self, text):
@@ -127,6 +130,11 @@ class ProgramControl(SpecialControl):
         steps = 0
 
         for i in range(len(current_drone.path) - 1):
+            while self.is_paused:  # Wait here if paused
+                self.update_status_text("Paused. Press 'p' to resume.")
+                self.screen.update()
+                turtle.time.sleep(0.1)  # Small sleep to prevent busy waiting
+            
             current_pos = current_drone.path[i]
             next_pos = current_drone.path[i + 1]
 
@@ -159,7 +167,11 @@ class ProgramControl(SpecialControl):
     # HELP HELP HELP
     def pause_mode(self):
         # help to pause # clemens section to do 
-        pass
+        self.is_paused = not self.is_paused  # Toggle pause state
+        if self.is_paused:
+            self.update_status_text("Paused. Press 'p' to resume.")
+        else:
+            self.update_status_text("Resumed. Press 'p' to pause.")
 
     # HELP HELP HELP
     def hide_path(self):
@@ -171,11 +183,15 @@ class ProgramControl(SpecialControl):
         turtle.bye()
 
     def continueProgram(self):
+        if self.is_paused:
+            return  # Do nothing if paused
         self.draw_map()
         self.screen.update()
         self.update_status_text('Manual Mode: Use arrow keys to navigate (press ‘f’ to calculate shortest path)')
          
     def reset(self):
+        if self.is_paused:
+            return  # Do nothing if paused
         self.screen.clear()
         turtle.tracer(0)
 
