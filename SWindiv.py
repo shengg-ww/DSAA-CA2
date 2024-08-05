@@ -1,11 +1,11 @@
 from drone import BaseDrone
 import random
 import turtle
+import time
 
 #1: Implement multi drone coordination with independent end points
-# 2: Random Event Generator (e.g Rain, Flood, Fog )
-# rain slows down drone, flood makes certain areas completely unavailable (requires rerouting), fog reduces visibility
-# making pathfinding sluggish and disable autopilot (if u choose to navigate through), also randomly change the endpoint
+# 2: Random Event Generator (e.g Hurricane )
+
 
 
 class SpecialControl(BaseDrone):
@@ -13,6 +13,8 @@ class SpecialControl(BaseDrone):
         # overwrites BaseDrone
         super().__init__(name, start_pos,target_pos, color, screen)
         self.target_pos = target_pos
+
+       
     
     def delete_drone(self):
         if len(self.drones) > 1:
@@ -74,26 +76,57 @@ class SpecialControl(BaseDrone):
             self.screen.update()
 
     def weather_randomizer(self):
-            # Existing implementation
-            weather=['Snow','Rain','Hurricane']
-            self.weather_condition = random.choice(weather)
-            self.apply_weather_effect()
-    
+        weather=['Hurricane']
+        self.weather_condition = random.choice(weather)
+        self.is_weather= not self.is_weather
+        if self.is_weather:
+                self.update_status_text(f'{self.weather_condition} has been applied')
+                if self.weather_condition == 'Rainy':
+                    self.draw_rain()
+                elif self.weather_condition == 'Hurricane':
+                    self.draw_hurricane()
 
-    def apply_weather_effect(self):
-        self.update_status_text(f'{self.weather_condition} has been applied')
-       
-        if self.weather_condition == 'Rainy':
-            self.draw_rain()
-        elif self.weather_condition == 'Hurricane':
-            self.draw_hurricane()
+        # Schedule the next weather randomization
+        next_duration = random.randint(10000, 30000)  # Random duration between 5 and 15 seconds in milliseconds
+        if next_duration<10000:
+            self.update_status_test('Hurricane is clearing up...')
+        self.screen.ontimer(self.weather_randomizer, next_duration)
+
+    def disable_weather(self):
+        self.draw_map()
+        self.screen.update()
+        self.update_status_text('Weather Randmonizer has been disabled')
 
     def draw_hurricane(self):
-        hurricane_turtle = turtle.Turtle()
-        hurricane_turtle.hideturtle()
-        hurricane_turtle.penup()
-        hurricane_turtle.speed(0)
-        hurricane_turtle.color('white')
-    
+        # Define a central point for the hurricane
+        center_x = random.randint(1, self.cols - 2)
+        center_y = random.randint(1, self.rows - 2)
+        radius = 3  # Radius around the central point
+
+        player_position = self.get_current_position()
+
+        for dx in range(-radius, radius + 1):
+            for dy in range(-radius, radius + 1):
+                new_x = center_x + dx
+                new_y = center_y + dy
+                if (0 <= new_x < self.cols and 0 <= new_y < self.rows and
+                    self.city_map[new_y][new_x] == '.' and (new_x, new_y) != player_position): 
+                    self.affected_cells.add((new_x, new_y))  # Add to the set of affected cells to disable autopilot
+                    self.draw_spiral(new_x, self.rows - new_y - 1)
+                   
+    # Set a timer to clear the hurricane after a random duration
+        duration = random.randint(5000, 15000)  # Random duration between 5 and 15 seconds in milliseconds
+        self.screen.ontimer(self.clear_hurricane, duration)
+
+    def clear_hurricane(self):
+        self.continueProgram()
+        self.screen.update()
+        self.affected_cells.clear()
+        self.update_status_text('Hurricane has passed')
+
+
+   
+
     def draw_rain(self):
         pass
+

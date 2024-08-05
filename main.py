@@ -64,8 +64,9 @@ class MainProgram(ProgramControl, SpecialControl):
          # Setup screen control function
         self.screen_control()
 
-        # set default weather
-        self.weather='sunny'
+
+        # State Variable to track weather state
+        self.is_weather = False 
 
         # Group Key bindings
     def screen_control(self):
@@ -90,6 +91,7 @@ class MainProgram(ProgramControl, SpecialControl):
 
         # additional feature 2 (SW)
         self.screen.onkey(self.weather_randomizer,'w')
+        self.screen.onkey(self.disable_weather, 's')
 
         # Update the screen
         self.draw_map()

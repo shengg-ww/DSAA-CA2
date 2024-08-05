@@ -2,7 +2,7 @@ import turtle
 import networkx as nx
 from SWindiv import SpecialControl
 from drone import BaseDrone
-
+import turtle as t
 
 class ProgramControl(SpecialControl):
 
@@ -16,6 +16,11 @@ class ProgramControl(SpecialControl):
         self.circle.speed(0)
         self.circle.hideturtle()
 
+        self.spiral = turtle.Turtle()
+        self.spiral.speed(0)
+        self.spiral.hideturtle()
+
+
         self.status_turtle = turtle.Turtle()
         self.status_turtle.speed(0)
         self.status_turtle.hideturtle()
@@ -25,6 +30,10 @@ class ProgramControl(SpecialControl):
 
         # State Variable to track pause state
         self.is_paused = False 
+
+        self.affected_cells = set()
+        self.drone_entry_times = {}  # Dictionary to track drone entry times into affected cells
+
     
 
     def update_status_text(self, text):
@@ -34,6 +43,19 @@ class ProgramControl(SpecialControl):
         self.status_turtle.write(text, align="center", font=("Arial", 12, "normal"))
         self.screen.update()
 
+    
+    def draw_spiral(self, x, y, spiral_size=0.0005, iterations=180):
+        self.spiral.penup()
+        self.spiral.goto(x +0.5 , y +0.5 )  # Start at the center of the cell
+        self.spiral.setheading(0)
+        self.spiral.pendown()
+
+        for i in range(iterations):
+            self.spiral.forward(spiral_size * i)
+            self.spiral.right(15)
+
+        self.spiral.penup()  # Ensure the turtle is pen-up after drawing
+        
     def draw_circle(self, x, y, letter=None, color='', text_color='black', border_color='', border_thickness=2):
         self.circle.penup()
         self.circle.goto(x + 0.5, y + 0.25)
@@ -91,11 +113,11 @@ class ProgramControl(SpecialControl):
 
             G = nx.grid_2d_graph(self.rows, self.cols)
 
-            # Remove nodes that are obstacles
-            for y in range(self.rows):
-                for x in range(self.cols):
-                    if self.city_map[y][x] == 'X':
-                        G.remove_node((y, x))
+            # Remove nodes that are obstacles or hurricane affected
+            for x in range(self.rows):
+                for y in range(self.cols):
+                    if self.city_map[x][y] == 'X' or (y, x) in self.affected_cells:
+                        G.remove_node((x, y))
 
             # Remove nodes that correspond to the positions of other drones
             for drone in self.drones:
@@ -163,10 +185,8 @@ class ProgramControl(SpecialControl):
         self.screen.update()
 
         self.update_status_text(f"Automatic Pilot: {current_drone.name} reached destination {end_pos} in {steps} steps. Press 'c' to continue.")
-    
-    # HELP HELP HELP
+
     def pause_mode(self):
-        # help to pause # clemens section to do 
         self.is_paused = not self.is_paused  # Toggle pause state
         if self.is_paused:
             self.update_status_text("Paused. Press 'p' to resume.")
@@ -195,6 +215,10 @@ class ProgramControl(SpecialControl):
         self.screen.clear()
         turtle.tracer(0)
 
+        # read the map file again (clear additional end points for new drones)
+        with open('city001.txt', 'r') as file:
+            self.city_map = [line.strip() for line in file.readlines()]
+        
         # Re-draw the map
         self.draw_map()
         self.write_text()
@@ -206,6 +230,8 @@ class ProgramControl(SpecialControl):
 
         # Re-bind the keys to control the drone
         self.screen_control()
+
+
      
 
  
