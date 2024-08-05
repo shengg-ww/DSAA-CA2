@@ -89,9 +89,9 @@ class ProgramControl(SpecialControl):
                     self.draw_circle(x, self.rows - y - 1, 'S', color='lightgreen', text_color='black', border_color='darkgreen', border_thickness=5)
 
     def calculate_shortest_path(self):
-        self.clear_yellow_circles()
+        self.clear_yellow_circles()  # Clear previous yellow circles
         self.path_visible = True
-
+        # Clear status messages or other necessary parts of the screen
         self.status_turtle.clear()
         self.screen.update()
 
@@ -120,6 +120,9 @@ class ProgramControl(SpecialControl):
                 path = nx.shortest_path(G, source=(start[1], start[0]), target=(end[1], end[0]), weight=None, method='dijkstra')
                 current_drone.path = [(x, y) for y, x in path]
 
+
+                # to store the path of circles
+                self.path_circles = []
 
                 # to store the path of circles
                 self.path_circles = []

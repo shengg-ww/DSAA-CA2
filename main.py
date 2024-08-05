@@ -33,6 +33,11 @@ class MainProgram(ProgramControl, SpecialControl):
         # Initialize drones linked list
         self.drones = DroneLinkedList()
 
+        # needed for hiding/showing path function
+        self.autopilot_finished = False
+        self.path_visible = True  # Track visibility state of path circles
+        self.path_circles = []  # Store references to path circles
+
         # Find the starting position 's'
         self.start_pos = None
         for y in range(self.rows):
