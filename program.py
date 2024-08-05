@@ -57,32 +57,36 @@ class ProgramControl(SpecialControl):
         self.spiral.penup()  # Ensure the turtle is pen-up after drawing
         
     def draw_circle(self, x, y, letter=None, color='', text_color='black', border_color='', border_thickness=2):
-        self.circle.penup()
-        self.circle.goto(x + 0.5, y + 0.25)
+        circle = turtle.Turtle()
+        circle.penup()
+        circle.goto(x + 0.5, y + 0.25)
         
         # Set the pen color and fill color
-        self.circle.pencolor(border_color)
-        self.circle.pensize(border_thickness)
-        self.circle.fillcolor(color)
+        circle.pencolor(border_color)
+        circle.pensize(border_thickness)
+        circle.fillcolor(color)
         
-        self.circle.pendown()
-        self.circle.begin_fill()
-        self.circle.circle(0.3)
-        self.circle.end_fill()
-        self.circle.penup()
+        circle.pendown()
+        circle.begin_fill()
+        circle.circle(0.3)
+        circle.end_fill()
+        circle.penup()
         
         if letter:
-            self.circle.goto(x + 0.5, y + 0.3)
-            self.circle.pendown()
-            self.circle.color(text_color)
-            self.circle.write(letter, align="center", font=("Arial", 24, "bold"))
+            circle.goto(x + 0.5, y + 0.3)
+            circle.pendown()
+            circle.color(text_color)
+            circle.write(letter, align="center", font=("Arial", 24, "bold"))
          
         
         if color == 'yellow':
-            self.yellow_circles.append(self.circle)
+            self.yellow_circles.append(circle)
         
-        self.circle.pensize(0.5)  # Reset pen size
-        self.circle.pencolor('black')  # Reset pen color to default
+        circle.pensize(0.5)  # Reset pen size
+        circle.pencolor('black')  # Reset pen color to default
+
+        circle.hideturtle() #hides turtle after drawing
+        return circle
 
     def clear_yellow_circles(self):
         for circle in self.yellow_circles:
@@ -98,7 +102,7 @@ class ProgramControl(SpecialControl):
 
     def calculate_shortest_path(self):
         self.clear_yellow_circles()  # Clear previous yellow circles
-
+        self.path_visible = True
         # Clear status messages or other necessary parts of the screen
         self.status_turtle.clear()
         self.screen.update()
@@ -132,8 +136,12 @@ class ProgramControl(SpecialControl):
                 # Convert the path back to the format (x, y)
                 current_drone.path = [(x, y) for y, x in path]  # Store the path in the current drone's path attribute
 
+                # to store the path of circles
+                self.path_circles = []
+
                 for node in current_drone.path:
-                    self.draw_circle(node[0], self.rows - node[1] - 1, color='yellow', border_color='black', border_thickness=4)
+                    circle = self.draw_circle(node[0], self.rows - node[1] - 1, color='yellow', border_color='black', border_thickness=4)
+                    self.path_circles.append(circle)
 
                 self.update_status_text("DRONE STATUS= Ready to take off in autopilot mode (press 'g')")
                 return path
@@ -193,10 +201,21 @@ class ProgramControl(SpecialControl):
         else:
             self.update_status_text("Resumed. Press 'p' to pause.")
 
-    # HELP HELP HELP
+    
     def hide_path(self):
-        # help to hide it
-        self.circle.hideturtle()
+        # check whether path is visible
+        if self.path_visible: 
+            for circle in self.path_circles:
+                circle.clear() #clear the drawings (hide)
+                circle.hideturtle()
+            self.path_visible = False #update visibility to false
+        else:
+            for node in self.drones[self.current_drone_index].path:
+                circle = self.draw_circle(node[0], self.rows - node[1] - 1, color='yellow', border_color='black', border_thickness=4)
+                self.path_circles.append(circle) #redraw and store the new circle
+            self.path_visible = True #update visibility to true
+        self.screen.update()
+        
 
     def quit_program(self):
         # quit the program
