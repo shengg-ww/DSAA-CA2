@@ -1,12 +1,12 @@
 import turtle
-from program import ProgramControl
+from DroneLinkedList import DroneLinkedList
 from drone import BaseDrone
 from SWindiv import SpecialControl
+from program import ProgramControl
 
 
 class MainProgram(ProgramControl, SpecialControl):
     def __init__(self):
-     
         super().__init__()
         with open('city001.txt', 'r') as file:
             self.city_map = [line.strip() for line in file.readlines()]
@@ -15,7 +15,7 @@ class MainProgram(ProgramControl, SpecialControl):
         self.rows = len(self.city_map)
         self.cols = len(self.city_map[0])
 
-        # # Screen setup
+        # Screen setup
         self.screen = turtle.Screen()
         self.screen.clear()
         self.screen.title('DSAA CA2')
@@ -25,14 +25,13 @@ class MainProgram(ProgramControl, SpecialControl):
 
         self.write_text()
         self.draw_map()
-    
 
         # Create the custom player turtle shape
         self.shape = ((0, 10), (-10, -10), (0, -5), (10, -10), (0, 10))
         self.screen.register_shape("arrow", self.shape)
 
-        # Initialize drones list
-        self.drones = []
+        # Initialize drones linked list
+        self.drones = DroneLinkedList()
 
         # Find the starting position 's'
         self.start_pos = None
@@ -49,26 +48,24 @@ class MainProgram(ProgramControl, SpecialControl):
         for y in range(self.rows):
             for x in range(self.cols):
                 if self.city_map[y][x] == 'e':
-                    self.target_pos = (x + 0.5,  y )
+                    self.target_pos = (x + 0.5, y)
                     break
             if self.target_pos:
                 break
 
-         # Initialize player drone
+        # Initialize player drone
         self.player = BaseDrone("Original Drone", self.start_pos, self.target_pos, "red", self.screen)
         self.drones.append(self.player)
 
-        self.current_drone_index = 0  # Start with player drone
+        self.current_drone_node = self.drones.head  # Start with player drone
         self.screen.listen()
 
-         # Setup screen control function
+        # Setup screen control function
         self.screen_control()
 
-
         # State Variable to track weather state
-        self.is_weather = False 
+        self.is_weather = False
 
-        # Group Key bindings
     def screen_control(self):
         self.screen.onkey(self.up, 'Up')
         self.screen.onkey(self.down, 'Down')
@@ -77,43 +74,57 @@ class MainProgram(ProgramControl, SpecialControl):
         self.screen.onkey(self.calculate_shortest_path, 'f')
         self.screen.onkey(self.autopilot_mode, 'g')
         self.screen.onkey(self.pause_mode, 'p')
-        self.screen.onkey(self.hide_path,'h')
-        self.screen.onkey(self.reset,'r')
-        self.screen.onkey(self.continueProgram,'c')
-        self.screen.onkey(self.quit_program,'q')
+        self.screen.onkey(self.hide_path, 'h')
+        self.screen.onkey(self.reset, 'r')
+        self.screen.onkey(self.continue_program, 'c')
+        self.screen.onkey(self.quit_program, 'q')
 
-        # addtional feature 1 (SW)
-        self.screen.onkey(self.add_drone,'+')
-        self.screen.onkey(self.switch_drone,'t')
-        self.screen.onkey(self.delete_drone,'BackSpace')
+        # Additional feature 1 (SW)
+        self.screen.onkey(self.add_drone, '+')
+        self.screen.onkey(self.switch_drone, 't')
+        self.screen.onkey(self.delete_drone, 'BackSpace')
         self.screen.onscreenclick(self.choose_end, 1)  # Left mouse click
 
-
-        # additional feature 2 (SW)
-        self.screen.onkey(self.weather_randomizer,'w')
+        # Additional feature 2 (SW)
+        self.screen.onkey(self.weather_randomizer, 'w')
         self.screen.onkey(self.disable_weather, 's')
 
         # Update the screen
         self.draw_map()
-        
         self.screen.update()
-    
+    def is_in_hurricane_zone(self, x, y):
+        return (x, y) in self.affected_cells
+
     def up(self):
-        self.drones[self.current_drone_index].move_up(self.city_map)
+        new_x, new_y = self.get_new_position(0, 1)
+        if not self.is_in_hurricane_zone(new_x, new_y):
+            self.drones.get_current_drone().move_up(self.city_map)
 
     def down(self):
-        self.drones[self.current_drone_index].move_down(self.city_map)
+        new_x, new_y = self.get_new_position(0, -1)
+        if not self.is_in_hurricane_zone(new_x, new_y):
+            self.drones.get_current_drone().move_down(self.city_map)
 
     def left(self):
-        self.drones[self.current_drone_index].move_left(self.city_map)
+        new_x, new_y = self.get_new_position(-1, 0)
+        if not self.is_in_hurricane_zone(new_x, new_y):
+            self.drones.get_current_drone().move_left(self.city_map)
 
     def right(self):
-        self.drones[self.current_drone_index].move_right(self.city_map)
+        new_x, new_y = self.get_new_position(1, 0)
+        if not self.is_in_hurricane_zone(new_x, new_y):
+            self.drones.get_current_drone().move_right(self.city_map)
 
     def get_current_position(self):
-        x, y = self.drones[self.current_drone_index].turtle.position()
+        x, y = self.drones.get_current_drone().turtle.position()
         return int(x - 0.5), int(self.rows - y - 0.5)
-    
+
+    def get_new_position(self, dx, dy):
+        current_x, current_y = self.get_current_position()
+        new_x = current_x + dx
+        new_y = current_y + dy
+        return new_x, new_y
+
 
     def write_text(self):
         self.turtle.penup()
